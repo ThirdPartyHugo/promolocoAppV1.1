@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Building2, Users, UserCircle, Handshake, Briefcase, Wrench, ArrowLeft } from 'lucide-react';
+import {
+  Building2,
+  Users,
+  UserCircle,
+  Handshake,
+  Briefcase,
+  Wrench,
+  ArrowLeft,
+} from 'lucide-react';
 import AdminDashboard from './components/Admin/Dashboard';
 import TeamLeaderDashboard from './components/TeamLeader/Dashboard';
 import SalesmanDashboard from './components/Salesman/Dashboard';
@@ -7,19 +15,58 @@ import ContractorDashboard from './components/Contractor/Dashboard';
 import GrosLotLocoDashboard from './components/GrosLotLoco/Dashboard';
 import CardHolderDashboard from './components/CardHolder/Dashboard';
 import { Logo } from './components/shared/Logo';
+import LoginForm from './components/Auth/LoginForm';
 
-type Role = 'admin' | 'teamLeader' | 'salesman' | 'contractor' | 'groslotloco' | 'cardholder' | null;
+type Role =
+  | 'admin'
+  | 'teamLeader'
+  | 'salesman'
+  | 'contractor'
+  | 'groslotloco'
+  | 'cardholder'
+  | null;
 
 export const App = () => {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const roles = [
-    { id: 'admin', title: 'Admin', icon: Building2, description: 'Complete system control and analytics' },
-    { id: 'teamLeader', title: 'Team Leader', icon: Users, description: 'Team management and performance tracking' },
-    { id: 'salesman', title: 'Salesman', icon: UserCircle, description: 'Sales tracking and customer management' },
-    { id: 'contractor', title: 'Contractor', icon: Handshake, description: 'Contract management and scheduling' },
-    { id: 'groslotloco', title: 'Gros Lot Loco', icon: Briefcase, description: 'Thermopump and ISO sales management' },
-    { id: 'cardholder', title: 'Card Holder', icon: Wrench, description: 'Service booking and management' },
+    {
+      id: 'admin',
+      title: 'Admin',
+      icon: Building2,
+      description: 'Complete system control and analytics',
+    },
+    {
+      id: 'teamLeader',
+      title: 'Team Leader',
+      icon: Users,
+      description: 'Team management and performance tracking',
+    },
+    {
+      id: 'salesman',
+      title: 'Salesman',
+      icon: UserCircle,
+      description: 'Sales tracking and customer management',
+    },
+    {
+      id: 'contractor',
+      title: 'Contractor',
+      icon: Handshake,
+      description: 'Contract management and scheduling',
+    },
+    {
+      id: 'groslotloco',
+      title: 'Gros Lot Loco',
+      icon: Briefcase,
+      description: 'Thermopump and ISO sales management',
+    },
+    {
+      id: 'cardholder',
+      title: 'Card Holder',
+      icon: Wrench,
+      description: 'Service booking and management',
+    },
   ];
 
   const renderDashboard = () => {
@@ -41,27 +88,39 @@ export const App = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return <LoginForm onLogin={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
+      <div className="bg-white p-4 shadow-sm flex justify-between items-center">
+        {selectedRole && (
+          <button
+            onClick={() => setSelectedRole(null)}
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Portal Selection
+          </button>
+        )}
+        <button
+          onClick={() => setIsAuthenticated(false)}
+          className="text-gray-600 hover:text-gray-900"
+        >
+          Sign Out
+        </button>
+      </div>
       {selectedRole ? (
-        <div>
-          <div className="bg-white p-4 shadow-sm">
-            <button
-              onClick={() => setSelectedRole(null)}
-              className="flex items-center text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Portal Selection
-            </button>
-          </div>
-          {renderDashboard()}
-        </div>
+        renderDashboard()
       ) : (
         <div className="container mx-auto px-4 py-12">
           <div className="text-center mb-12">
             <Logo size="lg" className="mx-auto mb-4" />
             <h1 className="text-4xl font-bold text-red-600 mb-4">PromoLoco</h1>
-            <p className="text-gray-600">Select your role to access your dashboard</p>
+            <p className="text-gray-600">
+              Select your role to access your dashboard
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {roles.map((role) => (
