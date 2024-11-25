@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/authStore';
-import { LoginForm } from './components/auth/LoginForm';
-import { SignupForm } from './components/auth/SignupForm';
+import { LoginForm } from './components/Auth/LoginForm';
+import { SignupForm } from './components/Auth/SignupForm';
 import { Building2, Users, UserCircle, Handshake, Briefcase, Wrench, ArrowLeft } from 'lucide-react';
 import AdminDashboard from './components/Admin/Dashboard';
 import TeamLeaderDashboard from './components/TeamLeader/Dashboard';
