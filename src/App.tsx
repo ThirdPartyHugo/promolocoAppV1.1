@@ -72,24 +72,30 @@ export const App = () => {
               { id: 'contractor', title: 'Contractor', icon: Handshake, description: 'Contract management and scheduling' },
               { id: 'groslotloco', title: 'Gros Lot Loco', icon: Briefcase, description: 'Thermopump and ISO sales management' },
               { id: 'cardholder', title: 'Card Holder', icon: Wrench, description: 'Service booking and management' },
-            ].map((role) => (
-              <button
-                key={role.id}
-                onClick={() => isAuthenticated && setSelectedRole(role.id as Role)}
-                disabled={!isAuthenticated}
-                className={`group bg-white p-6 rounded-xl shadow-lg transition-all duration-300 border-2 ${
-                  isAuthenticated ? 'hover:shadow-xl hover:border-red-500' : 'opacity-50 cursor-not-allowed'
-                }`}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="p-3 bg-red-50 rounded-full mb-4">
-                    <role.icon className="w-8 h-8 text-red-600" />
+            ].map((role) => {
+              // Assign the icon component to a variable
+              const Icon = role.icon;
+
+              return (
+                <button
+                  key={role.id}
+                  onClick={() => isAuthenticated && setSelectedRole(role.id as Role)}
+                  disabled={!isAuthenticated}
+                  className={`group bg-white p-6 rounded-xl shadow-lg transition-all duration-300 border-2 ${
+                    isAuthenticated ? 'hover:shadow-xl hover:border-red-500' : 'opacity-50 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="p-3 bg-red-50 rounded-full mb-4">
+                      {/* Use the variable here */}
+                      <Icon className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{role.title}</h3>
+                    <p className="text-gray-600 text-sm">{role.description}</p>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{role.title}</h3>
-                  <p className="text-gray-600 text-sm">{role.description}</p>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
