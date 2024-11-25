@@ -8,7 +8,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   initialized: boolean;
-  signUp: (email: string, password: string, companyName: string) => Promise<void>;
+  signUp: (email: string, password: string, companyName: string, role: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
   initialized: false,
 
-  signUp: async (email: string, password: string, companyName: string) => {
+  signUp: async (email: string, password: string, companyName: string, role: string) => {
     try {
       set({ loading: true, error: null });
       
@@ -33,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         options: {
           data: {
             company_name: companyName,
+            role: role,
           },
         },
       });
@@ -50,6 +51,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false });
     }
   },
+  
 
   signIn: async (email: string, password: string) => {
     try {

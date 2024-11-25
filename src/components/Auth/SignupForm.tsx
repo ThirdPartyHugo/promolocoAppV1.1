@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/authStore'; // Adjust the path accordingly
 import { Logo } from '../shared/Logo';
 import { UserRole } from '../../types/firebase';
 
@@ -12,7 +12,7 @@ const roleOptions: { value: UserRole; label: string }[] = [
   { value: 'cardholder', label: 'Card Holder' },
 ];
 
-export function SignupForm() {
+export function SignupForm({ onAuthSuccess }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,26 +22,32 @@ export function SignupForm() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuthContext();
+  
+  // Use the signUp function from authStore
+  const signUp = useAuthStore((state) => state.signUp);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     if (!formData.role) {
       setError('Please select a role');
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
     try {
-      await signup(formData.email, formData.password, formData.role, formData.name);
+      // Call signUp from authStore with email, password, name, and role
+      await signUp(formData.email, formData.password, formData.name, formData.role);
+      // Call onAuthSuccess if provided
+      if (onAuthSuccess) onAuthSuccess();
     } catch (error: any) {
       setError(error.message || 'Failed to create account');
     } finally {
@@ -82,7 +88,9 @@ export function SignupForm() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border
+                border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none
+                focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="John Doe"
               />
             </div>
@@ -99,7 +107,9 @@ export function SignupForm() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border
+                border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none
+                focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="you@example.com"
               />
             </div>
@@ -114,7 +124,8 @@ export function SignupForm() {
                 required
                 value={formData.role}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300
+                focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
               >
                 <option value="">Select a role</option>
                 {roleOptions.map(role => (
@@ -137,7 +148,9 @@ export function SignupForm() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border
+                border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none
+                focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="••••••••"
               />
             </div>
@@ -154,7 +167,9 @@ export function SignupForm() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border
+                border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none
+                focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
                 placeholder="••••••••"
               />
             </div>
@@ -164,7 +179,10 @@ export function SignupForm() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border
+              border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500
+              disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Sign up'}
             </button>
