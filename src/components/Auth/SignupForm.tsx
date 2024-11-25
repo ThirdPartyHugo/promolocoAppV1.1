@@ -1,175 +1,83 @@
 import React, { useState } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { Logo } from '../shared/Logo';
-import { UserRole } from '../../types/firebase';
+import { Brain } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import toast from 'react-hot-toast';
+import AuthForm from './AuthForm';
 
-const roleOptions: { value: UserRole; label: string }[] = [
-  { value: 'admin', label: 'Administrator' },
-  { value: 'teamLeader', label: 'Team Leader' },
-  { value: 'salesman', label: 'Salesman' },
-  { value: 'contractor', label: 'Contractor' },
-  { value: 'groslotloco', label: 'Gros Lot Loco' },
-  { value: 'cardholder', label: 'Card Holder' },
+const features = [
+  'Full Agency Dashboard',
+  'Team Management',
+  'Financial Tracking',
+  'Client Assignment System',
+  'Performance Analytics',
+  '24/7 Support'
 ];
 
-export function SignupForm() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: '',
-    role: '' as UserRole,
-  });
-  const [error, setError] = useState('');
+export default function Signup() {
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuthContext();
+  const signUp = useAuthStore((state) => state.signUp);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (!formData.role) {
-      setError('Please select a role');
-      return;
-    }
-
+  const handleSubmit = async ({ email, password, companyName }: { email: string; password: string; companyName?: string }) => {
+    if (!companyName) return;
     setLoading(true);
-
     try {
-      await signup(formData.email, formData.password, formData.role, formData.name);
+      await signUp(email, password, companyName);
+      toast.success('Welcome to Alfred! Check your email to verify your account.');
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      toast.error(error.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Logo size="lg" className="mx-auto" />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Create your account</h2>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex min-h-full">
+        <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24">
+          <div className="mx-auto w-full max-w-sm lg:w-96">
+            <div className="flex justify-center">
+              <Brain className="h-12 w-12 text-blue-600" />
+            </div>
+            <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+              Start your free trial
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              No credit card required. 14-day free trial.
+            </p>
+
+            <div className="mt-8">
+              <AuthForm type="signup" onSubmit={handleSubmit} loading={loading} />
+
+              <p className="mt-4 text-center text-sm text-gray-600">
+                Already have an account?{' '}
+                <button onClick={() => window.location.href = '/login'} className="font-medium text-blue-600 hover:text-blue-500">
+                  Sign in
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
-          
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                required
-                value={formData.role}
-                onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-              >
-                <option value="">Select a role</option>
-                {roleOptions.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
-                placeholder="••••••••"
-              />
+        
+        <div className="hidden lg:block relative flex-1 bg-blue-600">
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-500 to-blue-700"></div>
+          <div className="relative h-full flex flex-col justify-center px-12">
+            <h2 className="text-3xl font-bold text-white mb-8">
+              Everything you need to run your agency
+            </h2>
+            <div className="space-y-4">
+              {features.map((feature) => (
+                <div key={feature} className="flex items-center space-x-3">
+                  <div className="flex-shrink-0 h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-white">{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Creating account...' : 'Sign up'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
