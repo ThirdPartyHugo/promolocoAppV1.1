@@ -15,7 +15,7 @@ import ContractorDashboard from './components/Contractor/Dashboard';
 import GrosLotLocoDashboard from './components/GrosLotLoco/Dashboard';
 import CardHolderDashboard from './components/CardHolder/Dashboard';
 import { Logo } from './components/shared/Logo';
-import LoginForm from './components/Auth/LoginForm';
+import LoginForm from './components/Auth/LoginForm'; // Updated LoginForm
 
 type Role =
   | 'admin'
@@ -95,7 +95,7 @@ export const App = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-white p-4 shadow-sm flex justify-between items-center">
-        {selectedRole && (
+        {selectedRole ? (
           <button
             onClick={() => setSelectedRole(null)}
             className="flex items-center text-gray-600 hover:text-gray-900"
@@ -103,6 +103,8 @@ export const App = () => {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Portal Selection
           </button>
+        ) : (
+          <div />
         )}
         <button
           onClick={() => setIsAuthenticated(false)}
