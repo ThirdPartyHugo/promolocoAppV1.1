@@ -1,36 +1,36 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, updateDoc, doc, Timestamp, query, where, getDocs, writeBatch, arrayUnion } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { createClient } from '@supabase/supabase-js';
 import type { UserRole } from '../types/firebase';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAAgaCqbiJQWmueC8BG5Ufb-WKRbOles7I",
-  authDomain: "promoloco-app.firebaseapp.com",
-  projectId: "promoloco-app",
-  storageBucket: "promoloco-app.firebasestorage.app",
-  messagingSenderId: "461831163266",
-  appId: "1:461831163266:web:d63ba8b7046cc1688b539b",
-  measurementId: "G-NJ249RBXHQ"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Firestore
-export const db = getFirestore(app);
-
-// Initialize Auth
-export const auth = getAuth(app);
+// Initialize Supabase
+const supabaseUrl = 'https://jowosxdlplhgyuwwxjag.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impvd29zeGRscGxoZ3l1d3d4amFnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMjQ4OTQzOCwiZXhwIjoyMDQ4MDY1NDM4fQ.Uhou0nLNzk7vZ4WleAR5bMa5Pj_TqNTOU0C_1gPZTFA';
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Auth functions
 export const signIn = async (email: string, password: string) => {
   try {
-    const { user } = await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (!userDoc.exists()) {
-      throw new Error('User data not found');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('Error signing in:', error);
+      throw error;
     }
-    return { id: userDoc.id, ...userDoc.data() };
+    const user = data.user;
+    if (!user) {
+      throw new Error('User not found');
+    }
+    // Fetch user data from 'users' table
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('uid', user.id)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+      throw userError;
+    }
+
+    return { id: userData.id, ...userData };
   } catch (error) {
     console.error('Error signing in:', error);
     throw error;
@@ -39,17 +39,35 @@ export const signIn = async (email: string, password: string) => {
 
 export const createUser = async (email: string, password: string, role: UserRole, name: string) => {
   try {
-    const { user } = await createUserWithEmailAndPassword(auth, email, password);
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+    const user = data.user;
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     const userData = {
-      uid: user.uid,
+      uid: user.id,
       email,
       name,
       role,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-    const userRef = await addDoc(collection(db, 'users'), userData);
-    return { id: userRef.id, ...userData };
+    const { data: insertedUser, error: insertError } = await supabase
+      .from('users')
+      .insert([userData])
+      .single();
+
+    if (insertError) {
+      console.error('Error inserting user data:', insertError);
+      throw insertError;
+    }
+
+    return { id: insertedUser.id, ...insertedUser };
   } catch (error) {
     console.error('Error creating user:', error);
     throw error;
@@ -58,7 +76,11 @@ export const createUser = async (email: string, password: string, role: UserRole
 
 export const signOutUser = async () => {
   try {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Error signing out:', error);
     throw error;
@@ -66,7 +88,12 @@ export const signOutUser = async () => {
 };
 
 // Team functions
-export const createTeam = async (name: string, leaderId: string, territory: string, salesTarget: number) => {
+export const createTeam = async (
+  name: string,
+  leaderId: string,
+  territory: string,
+  salesTarget: number
+) => {
   try {
     const teamData = {
       name,
@@ -74,56 +101,113 @@ export const createTeam = async (name: string, leaderId: string, territory: stri
       territory,
       salesTarget,
       memberIds: [leaderId],
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-    const teamRef = await addDoc(collection(db, 'teams'), teamData);
-    
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .insert([teamData])
+      .single();
+
+    if (teamError) {
+      console.error('Error creating team:', teamError);
+      throw teamError;
+    }
+
     // Update the leader's user document with the team ID
-    const userRef = doc(db, 'users', leaderId);
-    await updateDoc(userRef, { teamId: teamRef.id });
-    
-    return { id: teamRef.id, ...teamData };
+    const { error: userError } = await supabase
+      .from('users')
+      .update({ teamId: team.id })
+      .eq('uid', leaderId);
+
+    if (userError) {
+      console.error('Error updating leader user:', userError);
+      throw userError;
+    }
+
+    return { id: team.id, ...team };
   } catch (error) {
     console.error('Error creating team:', error);
     throw error;
   }
 };
 
-export const addTeamMember = async (teamId: string, data: {
-  email: string;
-  password: string;
-  name: string;
-  role: UserRole;
-}) => {
+export const addTeamMember = async (
+  teamId: string,
+  data: {
+    email: string;
+    password: string;
+    name: string;
+    role: UserRole;
+  }
+) => {
   try {
     // Create the user account
-    const { user } = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    
-    // Create user document
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (authError) {
+      console.error('Error creating user account:', authError);
+      throw authError;
+    }
+
+    const user = authData.user;
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Create user record
     const userData = {
-      uid: user.uid,
+      uid: user.id,
       email: data.email,
       name: data.name,
       role: data.role,
       teamId,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-    const userRef = await addDoc(collection(db, 'users'), userData);
-    
+    const { data: insertedUser, error: userError } = await supabase
+      .from('users')
+      .insert([userData])
+      .single();
+
+    if (userError) {
+      console.error('Error inserting user data:', userError);
+      throw userError;
+    }
+
     // Update team members
-    const teamRef = doc(db, 'teams', teamId);
-    await updateDoc(teamRef, {
-      memberIds: arrayUnion(userRef.id),
-      updatedAt: Timestamp.now(),
-    });
-    
-    return { id: userRef.id, ...userData };
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('memberIds')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError) {
+      console.error('Error fetching team data:', teamError);
+      throw teamError;
+    }
+
+    const memberIds = teamData.memberIds || [];
+    memberIds.push(insertedUser.uid);
+
+    const { error: updateError } = await supabase
+      .from('teams')
+      .update({ memberIds, updatedAt: new Date() })
+      .eq('id', teamId);
+
+    if (updateError) {
+      console.error('Error updating team members:', updateError);
+      throw updateError;
+    }
+
+    return { id: insertedUser.id, ...insertedUser };
   } catch (error) {
     console.error('Error adding team member:', error);
     throw error;
   }
 };
 
-export default app;
+export default supabase;
