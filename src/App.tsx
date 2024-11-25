@@ -6,14 +6,16 @@ import SalesmanDashboard from './components/Salesman/Dashboard';
 import ContractorDashboard from './components/Contractor/Dashboard';
 import GrosLotLocoDashboard from './components/GrosLotLoco/Dashboard';
 import CardHolderDashboard from './components/CardHolder/Dashboard';
+import LoginForm from './components/Auth/LoginForm';
+import SignupForm from './components/Auth/SignupForm';
 import { Logo } from './components/shared/Logo';
-import AuthContainer from './components/AuthContainer'; // Adjust the path as needed
+import { useNavigate } from 'react-router-dom';
 
 type Role = 'admin' | 'teamLeader' | 'salesman' | 'contractor' | 'groslotloco' | 'cardholder' | null;
 
 export const App = () => {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
   const roles = [
     { id: 'admin', title: 'Admin', icon: Building2, description: 'Complete system control and analytics' },
@@ -43,10 +45,6 @@ export const App = () => {
     }
   };
 
-  if (!isAuthenticated) {
-    return <AuthContainer onAuthSuccess={() => setIsAuthenticated(true)} />;
-  }
-
   return (
     <div className="min-h-screen bg-gray-100">
       {selectedRole ? (
@@ -68,6 +66,20 @@ export const App = () => {
             <Logo size="lg" className="mx-auto mb-4" />
             <h1 className="text-4xl font-bold text-red-600 mb-4">PromoLoco</h1>
             <p className="text-gray-600">Select your role to access your dashboard</p>
+          </div>
+          <div className="flex justify-center space-x-4 mb-8">
+            <button
+              onClick={() => navigate('/login')} // Redirect to LoginForm
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => navigate('/signup')} // Redirect to SignupForm
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Signup
+            </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {roles.map((role) => (
