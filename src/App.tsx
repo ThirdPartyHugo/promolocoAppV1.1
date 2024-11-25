@@ -15,7 +15,8 @@ import ContractorDashboard from './components/Contractor/Dashboard';
 import GrosLotLocoDashboard from './components/GrosLotLoco/Dashboard';
 import CardHolderDashboard from './components/CardHolder/Dashboard';
 import { Logo } from './components/shared/Logo';
-import LoginForm from './components/Auth/LoginForm'; // Updated LoginForm
+import LoginForm from './components/Auth/LoginForm';
+import Signup from './components/Auth/SignupForm'; // Import the Signup component
 
 type Role =
   | 'admin'
@@ -29,6 +30,7 @@ type Role =
 export const App = () => {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false); // New state variable
 
   const roles = [
     {
@@ -89,7 +91,17 @@ export const App = () => {
   };
 
   if (!isAuthenticated) {
-    return <LoginForm onLogin={() => setIsAuthenticated(true)} />;
+    return isSigningUp ? (
+      <Signup
+        onLogin={() => setIsAuthenticated(true)}
+        onSwitchToLogin={() => setIsSigningUp(false)}
+      />
+    ) : (
+      <LoginForm
+        onLogin={() => setIsAuthenticated(true)}
+        onSwitchToSignup={() => setIsSigningUp(true)}
+      />
+    );
   }
 
   return (
@@ -107,7 +119,10 @@ export const App = () => {
           <div />
         )}
         <button
-          onClick={() => setIsAuthenticated(false)}
+          onClick={() => {
+            setIsAuthenticated(false);
+            setIsSigningUp(false); // Reset to login form when signing out
+          }}
           className="text-gray-600 hover:text-gray-900"
         >
           Sign Out
